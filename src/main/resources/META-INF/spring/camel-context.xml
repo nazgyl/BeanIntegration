@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="
+       http://www.springframework.org/schema/beans
+       http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
+       http://camel.apache.org/schema/spring
+       http://camel.apache.org/schema/spring/camel-spring-2.0.0.xsd">
+
+  <camelContext xmlns="http://camel.apache.org/schema/spring">
+    <route>
+      <from uri="activemq:queue:A"/>
+      
+      <setHeader headerName="testHeader">
+         <xpath resultType="java.lang.String">//foo/bar</xpath>
+         
+	</setHeader>
+      <to uri="activemq:queue:B"/> 
+    </route>
+   <route>
+         <from uri="activemq:queue:B"/>
+      <filter>
+         <xpath>$testHeader='test'</xpath>
+         <to uri="activemq:queue:C"/> 
+	</filter>
+      
+    </route>
+  </camelContext>
+  
+  
+  
+  <bean id="jmsConnectionFactory" 
+   class="org.apache.activemq.ActiveMQConnectionFactory">
+   <property name="brokerURL" value="tcp://localhost:61617" />
+</bean>
+
+<bean id="pooledConnectionFactory" 
+   class="org.apache.activemq.pool.PooledConnectionFactory" init-method="start" destroy-method="stop">
+   <property name="maxConnections" value="8" />
+   <property name="connectionFactory" ref="jmsConnectionFactory" />
+</bean>
+
+<bean id="jmsConfig" 
+   class="org.apache.camel.component.jms.JmsConfiguration">
+   <property name="connectionFactory" ref="pooledConnectionFactory"/>
+   <property name="concurrentConsumers" value="10"/>
+</bean>
+
+<bean id="activemq" 
+    class="org.apache.activemq.camel.component.ActiveMQComponent">
+    <property name="configuration" ref="jmsConfig"/>
+</bean>
+
+<bean id="consumeEndPoint" 
+    class="com.santhosh.camel.beanbinding.BeanBinding">
+    
+   
+    
+     
+</bean>
+  
+  
+</beans>
+
